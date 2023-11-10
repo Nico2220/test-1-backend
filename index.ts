@@ -17,18 +17,25 @@ const port = process.env.PORT || 3000;
 connectDB();
 
 app.put("/:userId/:amount", async (req: Request, res: Response) => {
-  const { userId, amount } = req.params;
-  const user = await User.findOne({ where: { id: userId } });
+  try {
+    const { userId, amount } = req.params;
+    const user = await User.findOne({ where: { id: userId } });
+    if (!userId || !Number(amount)) {
+      return res.status(400).json({ error: "ivalid params" });
+    }
 
-  if (!user) {
-    return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    user.balance = user.balance - Number(amount);
+    if (user.balance < 0) {
+      return res.status(400).json({ error: "Not enough funds on the balance" });
+    }
+    await user.save();
+    return res.status(200).json(user);
+  } catch (err) {
+    return res.status(500).json({ error: "Server error" });
   }
-  user.balance = user.balance - Number(amount);
-  if (user.balance < 0) {
-    return res.status(400).json({ error: "Not enough funds on the balance" });
-  }
-  await user.save();
-  return res.status(200).json(user);
 });
 
 app.listen(port, () => {
