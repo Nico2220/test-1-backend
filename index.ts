@@ -18,7 +18,7 @@ connectDB();
 
 app.put("/:userId/:amount", async (req: Request, res: Response) => {
   const { userId, amount } = req.params;
-  const user = (await User.findOne({ where: { id: userId } })) as User;
+  const user = await User.findOne({ where: { id: userId } });
 
   if (!user) {
     return res.status(404).json({ error: "User not found" });
